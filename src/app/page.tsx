@@ -187,7 +187,7 @@ export default function Home() {
             <p className="mt-2 text-slate-400">คลิกที่ตู้เพื่อดูรายละเอียดและจอง</p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
             {lockers.map((locker) => {
               const isSelected = selectedLocker === locker.id;
               return (
