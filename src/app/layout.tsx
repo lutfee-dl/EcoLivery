@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import Footer from "@/components/footer";
+import Navbar from "@/components/navbar";
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+
 // import { Geist, Geist_Mono } from "next/font/google";
 
 // const geistSans = Geist({
@@ -23,11 +27,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="th" suppressHydrationWarning>
       <body
-        // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+      // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <div className="min-h-screen">
+          <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+            <Navbar />
+            {children}
+            <Footer />
+          </NextThemesProvider>
+        </div>
       </body>
     </html>
   );

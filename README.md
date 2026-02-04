@@ -20,6 +20,35 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Firebase Setup (Auth + Firestore Rules)
+
+1) Create a `.env.local` based on `.env.local.example` and fill Firebase keys.
+
+2) Deploy Firestore rules from the root `firestore.rules` file using Firebase CLI.
+
+3) Set Custom Claims for admin/rider:
+
+- Create a service account key JSON in Firebase Console and save the path.
+- Run the script with environment variables:
+	- `FIREBASE_SERVICE_ACCOUNT_PATH` = path to service account JSON
+	- `TARGET_UID` = user UID to update
+	- `TARGET_ROLE` = `admin` or `rider`
+
+Example (PowerShell):
+
+```
+$env:FIREBASE_SERVICE_ACCOUNT_PATH="C:\path\serviceAccount.json"
+$env:TARGET_UID="user-uid"
+$env:TARGET_ROLE="admin"
+node scripts/set-custom-claims.mjs
+```
+
+After setting claims, sign out/in to refresh the token.
+
+## Theme Mode
+
+The theme toggle is available in the Navbar and stores a preference in `localStorage`.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
