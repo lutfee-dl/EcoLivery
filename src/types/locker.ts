@@ -1,11 +1,12 @@
-export type LockerSize = "S" | "M" | "L";
-export type LockerStatus = "available" | "occupied" | "maintenance";
+export type LockerSize = "S" | "M" | "L" | "XL";
 
 export interface Locker {
   id: string;
+  name?: string;
+  location?: string;
   size: LockerSize;
-  status: LockerStatus;
-  price: number;
+  available: boolean; // true = ว่าง, false = ถูกจอง
+  createdAt?: any;
 }
 
 export interface LockerRequest {

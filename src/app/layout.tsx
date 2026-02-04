@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
-import { ThemeProvider as NextThemesProvider } from "next-themes";
+import { ThemeProvider } from "@/components/theme-provider";
 
 // import { Geist, Geist_Mono } from "next/font/google";
 
@@ -32,11 +32,11 @@ export default function RootLayout({
       // className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <div className="min-h-screen">
-          <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+          <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
             <Navbar />
             {children}
             <Footer />
-          </NextThemesProvider>
+          </ThemeProvider>
         </div>
       </body>
     </html>

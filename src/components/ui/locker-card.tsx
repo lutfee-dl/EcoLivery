@@ -10,7 +10,8 @@ interface LockerCardProps {
 }
 
 export default function LockerCard({ locker, isSelected = false, onSelect }: LockerCardProps) {
-  const isAvailable = locker.status === "available";
+  // ใช้ available แทน status เพราะข้อมูลจาก Firestore
+  const isAvailable = locker.available !== false; // default เป็น true ถ้าไม่มี field
 
   const handleClick = () => {
     if (isAvailable && onSelect) {
@@ -22,7 +23,7 @@ export default function LockerCard({ locker, isSelected = false, onSelect }: Loc
     <button
       disabled={!isAvailable}
       onClick={handleClick}
-      className={`group relative text-left transition-all ${
+      className={`cursor-pointer group relative text-left transition-all ${
         isSelected ? "scale-105" : isAvailable ? "hover:scale-105" : "cursor-not-allowed opacity-60"
       }`}
       style={{ perspective: "1000px" }}
@@ -109,7 +110,7 @@ export default function LockerCard({ locker, isSelected = false, onSelect }: Loc
             </div>
 
             {/* Price Tag */}
-            {isAvailable && (
+            {/* {isAvailable && (
               <div className="absolute right-4 top-4">
                 <div className={`rounded-lg px-3 py-1.5 text-right shadow-lg ${
                   isSelected
@@ -120,7 +121,7 @@ export default function LockerCard({ locker, isSelected = false, onSelect }: Loc
                   <div className="text-xl font-black">฿{locker.price}</div>
                 </div>
               </div>
-            )}
+            )} */}
           </div>
 
           {/* Hinges */}

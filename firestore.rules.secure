@@ -51,7 +51,7 @@ service cloud.firestore {
     // Activity Logs - Development: Users can create, Production: Cloud Functions only
     match /activity_logs/{logId} {
       allow read: if isAdmin();
-      allow create: if isSignedIn(); // Development mode
+      allow create: if isSignedIn(); // Development
       allow update, delete: if false;
     }
   }

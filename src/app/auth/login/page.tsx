@@ -13,6 +13,9 @@ import {
 import { doc, getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
 import { setRoleCookieFromUser } from "@/lib/auth/role-cookie";
+import { ActivityLogger } from "@/lib/activity-logger";
+import { ROLE_COOKIE_NAME } from "@/lib/auth/roles";
+import Cookies from "js-cookie";
 
 const googleProvider = new GoogleAuthProvider();
 
@@ -67,9 +70,14 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       await setRoleCookieFromUser(result.user, "user");
+      
+      // Log activity
+      await ActivityLogger.login(result.user.email || "unknown", "google");
+      
       setSuccess("เข้าสู่ระบบสำเร็จ");
       router.push("/dashboard");
     } catch (err: any) {
+      await ActivityLogger.loginFailed("google-user", err?.message || "Unknown error");
       setError(err?.message || "ไม่สามารถเข้าสู่ระบบได้");
     } finally {
       setLoading(false);
@@ -81,6 +89,18 @@ export default function LoginPage() {
     setError(null);
     setSuccess(null);
     try {
+      // ⚠️ Development: Skip real OTP verification
+      // ให้กรอกเบอร์อะไรก็ได้แล้วจะถือว่า verified
+      if (!phone) {
+        setError("กรุณากรอกเบอร์โทรศัพท์");
+        setLoading(false);
+        return;
+      }
+      
+      setSuccess("ข้าม OTP (Development Mode) - กด 'ยืนยัน OTP' เลย");
+      setLoading(false);
+      
+      /* 🔒 Production: Uncomment this for real OTP
       const recaptchaContainer = document.getElementById("recaptcha-container");
       if (!recaptchaContainer) {
         setError("ไม่พบ reCAPTCHA container");
@@ -92,6 +112,7 @@ export default function LoginPage() {
       const result = await signInWithPhoneNumber(auth, phone, verifier);
       setConfirmationResult(result);
       setSuccess("ส่งรหัส OTP แล้ว");
+      */
     } catch (err: any) {
       setError(err?.message || "ไม่สามารถส่ง OTP ได้");
     } finally {
@@ -100,14 +121,46 @@ export default function LoginPage() {
   };
 
   const handleVerifyOtp = async () => {
-    if (!confirmationResult) {
-      setError("กรุณาขอรหัส OTP ก่อน");
-      return;
-    }
     setLoading(true);
     setError(null);
     setSuccess(null);
     try {
+      // ⚠️ Development: Mock rider login without real OTP
+      // สร้าง fake UID จากเบอร์โทร
+      const fakeUid = "rider_" + phone.replace(/\D/g, "");
+      
+      const riderRef = doc(db, "riders", fakeUid);
+      const riderSnap = await getDoc(riderRef);
+
+      if (!riderSnap.exists()) {
+        setShowRiderProfileForm(true);
+        setRiderForm((prev) => ({ ...prev, phone }));
+        setRiderStatus("none");
+        setSuccess("กรุณากรอกข้อมูลเพื่อสมัครไรเดอร์");
+        setLoading(false);
+        return;
+      }
+
+      const data = riderSnap.data() as RiderDoc;
+      setRiderStatus(data.status || "pending");
+
+      if (data.status === "approved") {
+        // Mock login as rider
+        Cookies.set(ROLE_COOKIE_NAME, "rider");
+        setSuccess("เข้าสู่ระบบไรเดอร์สำเร็จ (Development Mode)");
+        setTimeout(() => router.push("/dropoff"), 500);
+      } else if (data.status === "rejected") {
+        setError("บัญชีถูกปฏิเสธ กรุณาติดต่อแอดมิน");
+      } else {
+        setSuccess("บัญชีอยู่ระหว่างรอการอนุมัติจากแอดมิน");
+      }
+      
+      /* 🔒 Production: Uncomment this for real OTP verification
+      if (!confirmationResult) {
+        setError("กรุณาขอรหัส OTP ก่อน");
+        return;
+      }
+      
       const credential = await confirmationResult.confirm(otp);
       const uid = credential.user.uid;
       const riderRef = doc(db, "riders", uid);
@@ -135,8 +188,9 @@ export default function LoginPage() {
         await setRoleCookieFromUser(credential.user, "user");
         setSuccess("บัญชีอยู่ระหว่างรอการอนุมัติจากแอดมิน");
       }
+      */
     } catch (err: any) {
-      setError(err?.message || "OTP ไม่ถูกต้อง");
+      setError(err?.message || "ไม่สามารถยืนยันได้");
     } finally {
       setLoading(false);
     }
@@ -151,6 +205,27 @@ export default function LoginPage() {
     setError(null);
     setSuccess(null);
     try {
+      // ⚠️ Development: Use fake UID from phone number
+      const fakeUid = "rider_" + phone.replace(/\D/g, "");
+      
+      const riderRef = doc(db, "riders", fakeUid);
+      const payload: RiderDoc = {
+        ...riderForm,
+        status: "approved", // ⚠️ Auto-approve for development
+        approved: true,
+        createdAt: serverTimestamp(),
+      };
+      await setDoc(riderRef, payload, { merge: true });
+      
+      // Auto login as rider
+      Cookies.set(ROLE_COOKIE_NAME, "rider");
+      
+      setRiderStatus("approved");
+      setShowRiderProfileForm(false);
+      setSuccess("สมัครสำเร็จ! กำลังเข้าสู่ระบบ...");
+      setTimeout(() => router.push("/dropoff"), 1000);
+      
+      /* 🔒 Production: Uncomment this for real flow with admin approval
       const currentUser = auth.currentUser;
       if (!currentUser) {
         setError("กรุณายืนยัน OTP ก่อน");
@@ -168,6 +243,7 @@ export default function LoginPage() {
       setRiderStatus("pending");
       setShowRiderProfileForm(false);
       setSuccess("ส่งข้อมูลแล้ว รอแอดมินอนุมัติ");
+      */
     } catch (err: any) {
       setError(err?.message || "ไม่สามารถส่งข้อมูลได้");
     } finally {
@@ -195,7 +271,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
       <header className="border-b border-slate-800/60 bg-slate-950/70 backdrop-blur">
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-4">
-          <div className="flex items-center gap-3">
+          {/* <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg">
               <span className="text-lg font-black text-slate-900">EL</span>
             </div>
@@ -203,23 +279,25 @@ export default function LoginPage() {
               <p className="text-xs uppercase tracking-[0.3em] text-emerald-300">EcoLivery</p>
               <h1 className="text-lg font-bold">เข้าสู่ระบบ</h1>
             </div>
+          </div> */}
+          <div className="flex items-center gap-3">
+            <Link
+              href="/"
+              className="rounded-full border border-border px-5 py-2 text-sm font-medium transition hover:border-muted-foreground"
+            >
+              ← กลับหน้าแรก
+            </Link>
           </div>
-          <Link
-            href="/"
-            className="rounded-full border border-slate-700 px-5 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-400"
-          >
-            ← กลับหน้าแรก
-          </Link>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-xl px-6 py-16">
         {!showAdminLogin && !showRiderLogin ? (
           /* Main Login Selection */
-          <div className="rounded-3xl border-2 border-emerald-500/30 bg-slate-900/80 p-8 shadow-2xl">
+          <div className="rounded-3xl border-2 border-emerald-500/30 bg-background/80 p-8 shadow-2xl backdrop-blur">
             <div className="text-center">
               <h2 className="text-3xl font-bold">ยินดีต้อนรับ</h2>
-              <p className="mt-2 text-slate-400">เลือกวิธีเข้าสู่ระบบ</p>
+              <p className="mt-2 text-muted-foreground">เลือกวิธีเข้าสู่ระบบ</p>
             </div>
 
             <div className="mt-8 space-y-4">
@@ -227,8 +305,12 @@ export default function LoginPage() {
               <button
                 onClick={handleGoogleLogin}
                 disabled={loading}
-                className="group relative w-full overflow-hidden rounded-2xl border border-slate-700 bg-white px-6 py-4 font-semibold text-slate-900 transition hover:border-slate-500 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60"
-              >
+                className="
+    cursor-pointer group relative w-full overflow-hidden rounded-2xl border border-border bg-card px-6 py-4 font-semibold 
+    transition-all duration-200 ease-in-out
+    hover:border-gray-200 hover:bg-gray-100 hover:shadow-md
+    disabled:cursor-not-allowed disabled:opacity-60
+  "              >
                 <span className="flex items-center justify-center gap-3">
                   <svg className="h-6 w-6" viewBox="0 0 24 24">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -243,24 +325,24 @@ export default function LoginPage() {
               {/* Rider Login */}
               <button
                 onClick={() => setShowRiderLogin(true)}
-                className="w-full rounded-2xl border-2 border-blue-500/50 bg-blue-500/10 px-6 py-4 font-semibold text-blue-200 transition hover:border-blue-400 hover:bg-blue-500/20"
+                className="cursor-pointer w-full rounded-2xl border-2 border-blue-500/50 bg-blue-500/10 px-6 py-4 font-semibold text-blue-500 transition hover:border-blue-400 hover:bg-blue-500/20"
               >
                 <span className="flex items-center justify-center gap-3">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
                   </svg>
-                  เข้าสู่ระบบไรเดอร์ (Phone OTP)
+                  เข้าสู่ระบบไรเดอร์
                 </span>
               </button>
             </div>
 
             {error && (
-              <div className="mt-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              <div className="mt-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-600 dark:text-rose-200">
                 {error}
               </div>
             )}
             {success && (
-              <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-100">
                 {success}
               </div>
             )}
@@ -268,7 +350,7 @@ export default function LoginPage() {
             <div className="mt-8 text-center">
               <button
                 onClick={() => setShowAdminLogin(true)}
-                className="text-sm text-slate-400 transition hover:text-purple-400"
+                className="cursor-pointer text-sm text-muted-foreground transition hover:text-purple-600 dark:hover:text-purple-400"
               >
                 เข้าสู่ระบบแอดมิน →
               </button>
@@ -276,24 +358,38 @@ export default function LoginPage() {
           </div>
         ) : showRiderLogin ? (
           /* Rider Login */
-          <div className="rounded-3xl border-2 border-blue-500/30 bg-slate-900/80 p-8 shadow-2xl">
+          <div className="rounded-3xl border-2 border-blue-500/30 bg-background/80 p-8 shadow-2xl backdrop-blur">
             <div className="text-center">
-              <h2 className="text-3xl font-bold text-blue-200">ไรเดอร์</h2>
-              <p className="mt-2 text-slate-400">ยืนยันตัวตนด้วยเบอร์โทรศัพท์</p>
+              <h2 className="text-3xl font-bold text-blue-600 dark:text-blue-200">ไรเดอร์</h2>
+              <p className="mt-2 text-muted-foreground">ยืนยันตัวตนด้วยเบอร์โทรศัพท์</p>
             </div>
 
             <div className="mt-8 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-300">เบอร์โทรศัพท์</label>
+                <label className="block text-sm font-semibold">เบอร์โทรศัพท์</label>
                 <input
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+66xxxxxxxxx"
-                  className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
+                  placeholder="0812345678 (กรอกอะไรก็ได้)"
+                  className="mt-2 w-full rounded-2xl border border-border bg-muted/60 px-4 py-3 placeholder:text-muted-foreground focus:border-blue-400 focus:outline-none"
                 />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  💡 Development Mode: ไม่ต้องใส่รูปแบบ +66
+                </p>
               </div>
 
+              {!showRiderProfileForm && riderStatus === "none" && (
+                <button
+                  onClick={handleVerifyOtp}
+                  disabled={loading || !phone}
+                  className="w-full rounded-2xl bg-blue-500 px-6 py-4 font-bold text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ / สมัครใหม่"}
+                </button>
+              )}
+
+              {/* 🔒 Production: OTP Input (Currently commented out)
               <button
                 onClick={handleSendOtp}
                 disabled={loading}
@@ -324,35 +420,36 @@ export default function LoginPage() {
                   </button>
                 </>
               )}
+              */}
 
               <div id="recaptcha-container" />
 
               {showRiderProfileForm && (
-                <div className="mt-6 space-y-3 rounded-2xl border border-slate-700 bg-slate-950/40 p-4">
-                  <h4 className="font-semibold text-blue-200">กรอกข้อมูลสมัครไรเดอร์</h4>
+                <div className="mt-6 space-y-3 rounded-2xl border border-border bg-muted/40 p-4">
+                  <h4 className="font-semibold text-blue-600 dark:text-blue-200">กรอกข้อมูลสมัครไรเดอร์</h4>
                   <input
                     value={riderForm.fullName}
                     onChange={(e) => setRiderForm((prev) => ({ ...prev, fullName: e.target.value }))}
                     placeholder="ชื่อ-นามสกุล"
-                    className="w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
+                    className="w-full rounded-2xl border border-border bg-muted/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-blue-400 focus:outline-none"
                   />
                   <input
                     value={riderForm.nationalId}
                     onChange={(e) => setRiderForm((prev) => ({ ...prev, nationalId: e.target.value }))}
                     placeholder="เลขบัตรประชาชน"
-                    className="w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
+                    className="w-full rounded-2xl border border-border bg-muted/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-blue-400 focus:outline-none"
                   />
                   <input
                     value={riderForm.vehicleType}
                     onChange={(e) => setRiderForm((prev) => ({ ...prev, vehicleType: e.target.value }))}
                     placeholder="ประเภทพาหนะ"
-                    className="w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
+                    className="w-full rounded-2xl border border-border bg-muted/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-blue-400 focus:outline-none"
                   />
                   <input
                     value={riderForm.licensePlate}
                     onChange={(e) => setRiderForm((prev) => ({ ...prev, licensePlate: e.target.value }))}
                     placeholder="ทะเบียนรถ"
-                    className="w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-sm text-white placeholder:text-slate-500 focus:border-blue-400 focus:outline-none"
+                    className="w-full rounded-2xl border border-border bg-muted/60 px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-blue-400 focus:outline-none"
                   />
                   <button
                     onClick={handleSubmitRiderProfile}
@@ -394,7 +491,7 @@ export default function LoginPage() {
                   setError(null);
                   setSuccess(null);
                 }}
-                className="text-sm text-slate-400 transition hover:text-emerald-400"
+                className="text-sm text-muted-foreground transition hover:text-emerald-600 dark:hover:text-emerald-400"
               >
                 ← กลับไปเลือกวิธีเข้าสู่ระบบ
               </button>
@@ -402,32 +499,32 @@ export default function LoginPage() {
           </div>
         ) : (
           /* Admin Login */
-          <div className="rounded-3xl border-2 border-purple-500/30 bg-slate-900/80 p-8 shadow-2xl">
+          <div className="rounded-3xl border-2 border-purple-500/30 bg-background/80 p-8 shadow-2xl backdrop-blur">
             <div className="text-center">
               <h2 className="text-3xl font-bold">แอดมิน</h2>
-              <p className="mt-2 text-slate-400">เข้าสู่ระบบด้วยอีเมลและรหัสผ่าน</p>
+              <p className="mt-2 text-muted-foreground">เข้าสู่ระบบด้วยอีเมลและรหัสผ่าน</p>
             </div>
 
             <div className="mt-8 space-y-4">
               <div>
-                <label className="block text-sm font-semibold text-slate-300">อีเมล</label>
+                <label className="block text-sm font-semibold">อีเมล</label>
                 <input
                   type="email"
                   value={adminEmail}
                   onChange={(e) => setAdminEmail(e.target.value)}
                   placeholder="admin@ecolivery.com"
-                  className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500 focus:border-purple-400 focus:outline-none"
+                  className="mt-2 w-full rounded-2xl border border-border bg-muted/60 px-4 py-3 placeholder:text-muted-foreground focus:border-purple-400 focus:outline-none"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-300">รหัสผ่าน</label>
+                <label className="block text-sm font-semibold">รหัสผ่าน</label>
                 <input
                   type="password"
                   value={adminPassword}
                   onChange={(e) => setAdminPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="mt-2 w-full rounded-2xl border border-slate-700 bg-slate-950/60 px-4 py-3 text-white placeholder:text-slate-500 focus:border-purple-400 focus:outline-none"
+                  className="mt-2 w-full rounded-2xl border border-border bg-muted/60 px-4 py-3 placeholder:text-muted-foreground focus:border-purple-400 focus:outline-none"
                 />
               </div>
 
@@ -441,12 +538,12 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="mt-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              <div className="mt-6 rounded-2xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-600 dark:text-rose-200">
                 {error}
               </div>
             )}
             {success && (
-              <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-100">
+              <div className="mt-6 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-100">
                 {success}
               </div>
             )}
@@ -458,7 +555,7 @@ export default function LoginPage() {
                   setError(null);
                   setSuccess(null);
                 }}
-                className="text-sm text-slate-400 transition hover:text-emerald-400"
+                className="text-sm text-muted-foreground transition hover:text-emerald-600 dark:hover:text-emerald-400"
               >
                 ← กลับไปเลือกวิธีเข้าสู่ระบบ
               </button>

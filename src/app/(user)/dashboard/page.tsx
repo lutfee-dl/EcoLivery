@@ -8,6 +8,10 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import Cookies from "js-cookie";
 import { auth, db } from "@/lib/firebase";
 import { ROLE_COOKIE_NAME, type UserRole } from "@/lib/auth/roles";
+import { Package, QrCode, Clock, AlertCircle } from "lucide-react";
+import { useLockerLockCheck } from "@/lib/locker-lock";
+import { RENTAL_PLANS, type RentalDuration } from "@/constants/rental-pricing";
+import { LockerStatus } from "@/components/ui/locker-status";
 
 type Request = {
   id: string;
@@ -17,6 +21,11 @@ type Request = {
   createdAt: any;
   riderToken?: string;
   pickupOtp?: string;
+  rentalDuration?: RentalDuration;
+  deadline?: any;
+  isLocked?: boolean;
+  overtimeFee?: number;
+  overtimeHours?: number;
 };
 
 export default function DashboardPage() {
@@ -25,6 +34,18 @@ export default function DashboardPage() {
   const [role, setRole] = useState<UserRole | null>(null);
   const [user, setUser] = useState<any>(null);
   const [requests, setRequests] = useState<Request[]>([]);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Check for success param
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('success') === 'created') {
+      setSuccessMessage('🎉 สร้างรายการจองสำเร็จ! ส่ง Token ให้ไรเดอร์เพื่อไปรับของจากคุณ');
+      // Clear URL params
+      window.history.replaceState({}, '', '/dashboard');
+      setTimeout(() => setSuccessMessage(null), 5000);
+    }
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -40,6 +61,8 @@ export default function DashboardPage() {
       // โหลดข้อมูลตาม role
       if (userRole === "user") {
         await loadUserRequests(currentUser.uid);
+      } else if (userRole === "rider") {
+        await loadRiderTasks();
       }
 
       setIsLoading(false);
@@ -59,6 +82,20 @@ export default function DashboardPage() {
       setRequests(data.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds));
     } catch (error) {
       console.error("Error loading requests:", error);
+    }
+  };
+
+  const loadRiderTasks = async () => {
+    try {
+      const q = query(collection(db, "requests"), where("status", "==", "paid"));
+      const snapshot = await getDocs(q);
+      const data = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      })) as Request[];
+      setRequests(data.sort((a, b) => b.createdAt?.seconds - a.createdAt?.seconds));
+    } catch (error) {
+      console.error("Error loading rider tasks:", error);
     }
   };
 
@@ -99,26 +136,17 @@ export default function DashboardPage() {
               {role === "admin" && "แดชบอร์ดแอดมิน"}
             </h1>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-xs text-slate-400">เข้าสู่ระบบด้วย</p>
-              <p className="text-sm font-medium">{user?.email || user?.phoneNumber || "ผู้ใช้"}</p>
-            </div>
-            <button
-              onClick={() => {
-                auth.signOut();
-                Cookies.remove(ROLE_COOKIE_NAME);
-                router.push("/");
-              }}
-              className="rounded-full border border-rose-500 px-4 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-500/10"
-            >
-              ออกจากระบบ
-            </button>
-          </div>
         </div>
       </header>
 
       <main className="mx-auto w-full max-w-7xl px-6 py-8">
+        {/* Success Message */}
+        {successMessage && (
+          <div className="mb-6 animate-bounce rounded-2xl border-2 border-emerald-500/50 bg-emerald-500/10 p-4 text-center">
+            <p className="text-sm font-semibold text-emerald-300">{successMessage}</p>
+          </div>
+        )}
+
         {/* Navigation Cards */}
         <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
           {role === "user" && (
@@ -167,6 +195,11 @@ export default function DashboardPage() {
                   <div className="text-right">
                     <p className="text-xs text-slate-400">งานส่งของ</p>
                     <p className="text-lg font-semibold text-emerald-200">ส่งของ</p>
+                    {requests.length > 0 && (
+                      <span className="mt-1 inline-block rounded-full bg-emerald-500 px-2 py-0.5 text-xs font-bold text-slate-900">
+                        {requests.length} งาน
+                      </span>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -207,6 +240,65 @@ export default function DashboardPage() {
           )}
         </div>
 
+        {/* Rider Tasks List */}
+        {role === "rider" && (
+          <section className="mt-8">
+            <h2 className="text-2xl font-semibold">งานรอส่งของ (Pending)</h2>
+            {requests.length === 0 ? (
+              <div className="mt-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-12 text-center">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-800/60 text-4xl">
+                  ✅
+                </div>
+                <p className="mt-4 text-slate-300">ไม่มีงานรอดำเนินการ</p>
+                <p className="mt-2 text-sm text-slate-500">รีเฟรชหน้าเพื่อตรวจสอบงานใหม่</p>
+              </div>
+            ) : (
+              <div className="mt-6 space-y-4">
+                {requests.map((req) => (
+                  <div
+                    key={req.id}
+                    className="rounded-3xl border border-emerald-500/30 bg-gradient-to-r from-emerald-500/5 to-slate-900/60 p-6 transition hover:border-emerald-500"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20">
+                            <Package className="h-6 w-6 text-emerald-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold">ตู้ {req.lockerId}</h3>
+                            <span className="rounded-full bg-blue-500/20 px-3 py-1 text-xs font-semibold text-blue-300">
+                              รอรับของ
+                            </span>
+                          </div>
+                        </div>
+                        
+                        <div className="mt-4 space-y-2 text-sm text-slate-400">
+                          <p>Token: <span className="font-mono text-emerald-400">{req.riderToken}</span></p>
+                          <p>ค่าบริการ: <span className="text-lg font-bold text-emerald-400">฿{req.price}</span></p>
+                          {req.createdAt && (
+                            <p className="flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+                              {new Date(req.createdAt.seconds * 1000).toLocaleString('th-TH')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <Link
+                        href="/rider/dropoff"
+                        className="group rounded-xl bg-emerald-500 px-6 py-3 font-bold text-slate-900 transition hover:bg-emerald-400"
+                      >
+                        รับงาน →
+                      </Link>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+        )}
+
         {/* User Requests List */}
         {role === "user" && (
           <section className="mt-8">
@@ -229,38 +321,104 @@ export default function DashboardPage() {
                 {requests.map((req) => (
                   <div
                     key={req.id}
-                    className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6"
+                    className="rounded-3xl border border-slate-800 bg-slate-900/60 p-6 transition hover:border-emerald-500/30"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
+                      {/* Left: Info */}
                       <div className="flex-1">
                         <div className="flex items-center gap-3">
-                          <h3 className="text-lg font-semibold">ตู้ {req.lockerId}</h3>
-                          {getStatusBadge(req.status)}
+                          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
+                            <Package className="h-6 w-6 text-emerald-400" />
+                          </div>
+                          <div>
+                            <h3 className="text-xl font-bold">ตู้ {req.lockerId}</h3>
+                            {getStatusBadge(req.status)}
+                          </div>
                         </div>
-                        <p className="mt-2 text-sm text-slate-400">
-                          Request ID: {req.id}
-                        </p>
-                        <p className="text-sm text-slate-400">
-                          ค่าบริการ: ฿{req.price}
-                        </p>
-                        {req.pickupOtp && req.status === "in_locker" && (
-                          <div className="mt-3 rounded-2xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 inline-block">
-                            <p className="text-xs text-emerald-200">
-                              รหัส OTP รับของ: <span className="font-mono text-lg font-bold">{req.pickupOtp}</span>
+                        
+                        <div className="mt-4 space-y-2 text-sm text-slate-400">
+                          <p>Request ID: <span className="font-mono text-slate-300">{req.id}</span></p>
+                          <p>ค่าบริการ: <span className="text-lg font-bold text-emerald-400">฿{req.price}</span></p>
+                          {req.rentalDuration && (
+                            <p>ระยะเวลาเช่า: <span className="font-semibold text-slate-300">
+                              {RENTAL_PLANS[req.rentalDuration]?.label}
+                            </span></p>
+                          )}
+                          {req.createdAt && (
+                            <p className="flex items-center gap-1">
+                              <Clock className="h-4 w-4" />
+                              {new Date(req.createdAt.seconds * 1000).toLocaleString('th-TH')}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Locker Status (Deadline & Lock) */}
+                        <LockerStatus
+                          requestId={req.id}
+                          deadline={req.deadline}
+                          rentalDuration={req.rentalDuration}
+                          isLocked={req.isLocked}
+                          overtimeFee={req.overtimeFee}
+                          overtimeHours={req.overtimeHours}
+                        />
+
+                        {/* Token Display for Rider */}
+                        {req.riderToken && req.status === "paid" && (
+                          <div className="mt-4 rounded-2xl border-2 border-blue-500/50 bg-blue-500/10 p-4">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-blue-400">
+                                  Token สำหรับไรเดอร์
+                                </p>
+                                <p className="mt-1 font-mono text-lg font-bold text-blue-300">
+                                  {req.riderToken}
+                                </p>
+                              </div>
+                              <button
+                                onClick={() => {
+                                  navigator.clipboard.writeText(req.riderToken!);
+                                  alert('คัดลอก Token แล้ว!');
+                                }}
+                                className="rounded-lg bg-blue-500/20 px-3 py-2 text-xs font-semibold text-blue-300 transition hover:bg-blue-500/30"
+                              >
+                                📋 คัดลอก
+                              </button>
+                            </div>
+                            <p className="mt-2 text-xs text-blue-300/70">
+                              💡 ส่ง Token นี้ให้ไรเดอร์เพื่อไปรับของจากคุณ
+                            </p>
+                          </div>
+                        )}
+
+                        {/* OTP Display - Highlight when ready */}
+                        {req.pickupOtp && req.status === "in_locker" && !req.isLocked && (
+                          <div className="mt-4 animate-pulse rounded-2xl border-2 border-emerald-500 bg-gradient-to-r from-emerald-500/20 to-green-500/20 p-6 shadow-lg">
+                            <p className="text-xs font-semibold uppercase tracking-wider text-emerald-400">
+                              ✨ รหัส OTP รับของพร้อมแล้ว!
+                            </p>
+                            <p className="mt-2 font-mono text-4xl font-black text-emerald-300">
+                              {req.pickupOtp}
+                            </p>
+                            <p className="mt-2 text-xs text-emerald-300/70">
+                              💡 ไปที่ตู้และกดปุ่ม "รับของเลย" ด้านล่าง
                             </p>
                           </div>
                         )}
                       </div>
-                      <div className="text-right">
-                        {req.status === "in_locker" && (
+
+                      {/* Action Button - Make it prominent */}
+                      {req.status === "in_locker" && !req.isLocked && (
+                        <div className="flex items-center">
                           <Link
-                            href="/pickup"
-                            className="rounded-full bg-emerald-400 px-4 py-2 text-xs font-semibold text-slate-900 transition hover:bg-emerald-300"
+                            href={`/pickup?requestId=${req.id}`}
+                            className="group flex items-center gap-2 rounded-xl bg-gradient-to-r from-emerald-500 to-green-500 px-8 py-4 font-bold text-slate-900 shadow-xl transition hover:shadow-2xl hover:scale-105"
                           >
+                            <Package className="h-6 w-6" />
                             รับของเลย
+                            <span className="text-xl">→</span>
                           </Link>
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

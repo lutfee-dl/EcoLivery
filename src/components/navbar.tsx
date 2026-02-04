@@ -7,6 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Cookies from "js-cookie";
 import { auth } from "@/lib/firebase";
 import { ROLE_COOKIE_NAME, type UserRole } from "@/lib/auth/roles";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 export default function Navbar() {
   const router = useRouter();
@@ -58,6 +59,7 @@ export default function Navbar() {
 
         {/* Desktop Menu - Super Simple */}
         <div className="hidden items-center gap-3 md:flex">
+          <ThemeToggle />
           {isLoading ? (
             <div className="h-9 w-32 animate-pulse rounded-lg bg-slate-800"></div>
           ) : user ? (
@@ -114,14 +116,30 @@ export default function Navbar() {
 
               <button
                 onClick={handleSignOut}
-                className="rounded-lg px-5 py-2 text-sm font-semibold text-slate-400 transition hover:text-white"
+                className="cursor-pointer rounded-full border border-rose-500 px-4 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-500"
               >
-                ออก
+                ออกจากระบบ
               </button>
+            {/* <div className="flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-xs text-slate-400">เข้าสู่ระบบด้วย</p>
+              <p className="text-sm font-medium">{user?.email || user?.phoneNumber || "ผู้ใช้"}</p>
+            </div>
+            <button
+              onClick={() => {
+                auth.signOut();
+                Cookies.remove(ROLE_COOKIE_NAME);
+                router.push("/");
+              }}
+              className="rounded-full border border-rose-500 px-4 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-500/10"
+            >
+              ออกจากระบบ
+            </button>
+          </div> */}
             </>
           ) : (
             <Link
-              href="/login"
+              href="/auth/login"
               className="rounded-lg bg-emerald-500 px-6 py-2 text-sm font-bold text-slate-900 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400"
             >
               เข้าสู่ระบบ
@@ -130,18 +148,21 @@ export default function Navbar() {
         </div>
 
         {/* Mobile Menu Button */}
-        <button
-          onClick={() => setShowMobileMenu(!showMobileMenu)}
-          className="rounded-lg bg-slate-800 p-2 text-white transition hover:bg-slate-700 md:hidden"
-        >
-          <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            {showMobileMenu ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            )}
-          </svg>
-        </button>
+        <div className="flex items-center gap-2 md:hidden">
+          <ThemeToggle />
+          <button
+            onClick={() => setShowMobileMenu(!showMobileMenu)}
+            className="rounded-lg bg-slate-800 p-2 text-white transition hover:bg-slate-700"
+          >
+            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {showMobileMenu ? (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              ) : (
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              )}
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Mobile Menu */}
