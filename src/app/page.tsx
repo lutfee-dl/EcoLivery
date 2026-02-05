@@ -10,14 +10,7 @@ import { auth, db } from "@/lib/firebase";
 import { ROLE_COOKIE_NAME, type UserRole } from "@/lib/auth/roles";
 import LockerCard from "@/components/ui/locker-card";
 import { ArrowRight, X, MousePointer2, CreditCard, QrCode } from "lucide-react";
-
-interface Locker {
-  id: string;
-  name: string;
-  location: string;
-  size: string;
-  available: boolean;
-}
+import type { Locker } from "@/types/locker";
 
 export default function Home() {
   const router = useRouter();
@@ -82,7 +75,7 @@ export default function Home() {
 
   const selectedLockerData = selectedLocker ? lockers.find(l => l.id === selectedLocker) : null;
 
-  const availableCount = lockers.filter((l) => l.status === "available").length;
+  const availableCount = lockers.filter((l) => l.available).length;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">

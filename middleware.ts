@@ -15,13 +15,13 @@ export function middleware(request: NextRequest) {
 
   if (isAdminRoute(pathname)) {
     if (role !== "admin") {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/auth/login", request.url));
     }
   }
 
   if (isRiderRoute(pathname)) {
     if (role !== "rider" && role !== "admin") {
-      return NextResponse.redirect(new URL("/login", request.url));
+      return NextResponse.redirect(new URL("/auth/login", request.url));
     }
   }
 

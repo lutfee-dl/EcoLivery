@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -24,7 +24,7 @@ function createToken() {
   return Math.random().toString(36).slice(2) + Date.now().toString(36);
 }
 
-export default function RequestPage() {
+function RequestContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preSelectedLocker = searchParams.get("lockerId");
@@ -63,7 +63,7 @@ export default function RequestPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (!user) {
-        router.push("/login");
+        router.push("/auth/login");
       } else {
         setIsAuthChecking(false);
       }
@@ -373,5 +373,17 @@ export default function RequestPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function RequestPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <RequestContent />
+    </Suspense>
   );
 }

@@ -226,7 +226,7 @@ export default function Navbar() {
             </div>
           ) : (
             <Link
-              href="/login"
+              href="/auth/login"
               onClick={() => setShowMobileMenu(false)}
               className="block rounded-lg bg-emerald-500 px-4 py-3 text-center font-bold text-slate-900"
             >

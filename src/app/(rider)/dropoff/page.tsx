@@ -40,7 +40,7 @@ export default function RiderDropoffPage() {
   useEffect(() => {
     const role = Cookies.get(ROLE_COOKIE_NAME) as UserRole | undefined;
     if (role !== "rider" && role !== "admin") {
-      router.push("/login");
+      router.push("/auth/login");
     } else {
       setIsAuthChecking(false);
     }
@@ -167,7 +167,7 @@ export default function RiderDropoffPage() {
         </div>
         <div className="flex items-center gap-3">
           <Link
-            href="/login"
+            href="/auth/login"
             className="rounded-full border border-slate-700 px-5 py-2 text-sm font-medium text-slate-200 transition hover:border-slate-400"
           >
             ไปล็อกอิน

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { onAuthStateChanged } from "firebase/auth";
@@ -9,7 +9,7 @@ import { auth, db } from "@/lib/firebase";
 import { ActivityLogger } from "@/lib/activity-logger";
 import { Package, Lock, Unlock, CheckCircle, AlertCircle } from "lucide-react";
 
-export default function PickupPage() {
+function PickupContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const preSelectedRequestId = searchParams.get("requestId");
@@ -26,7 +26,7 @@ export default function PickupPage() {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
-        router.push("/login");
+        router.push("/auth/login");
         return;
       }
 
@@ -327,5 +327,17 @@ export default function PickupPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function PickupPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <PickupContent />
+    </Suspense>
   );
 }

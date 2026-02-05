@@ -12,7 +12,7 @@ export default function Footer() {
           <Link href="/" className="transition hover:text-slate-200">
             หน้าแรก
           </Link>
-          <Link href="/login" className="transition hover:text-slate-200">
+          <Link href="/auth/login" className="transition hover:text-slate-200">
             เข้าสู่ระบบ
           </Link>
           <Link href="/request" className="transition hover:text-slate-200">
