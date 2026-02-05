@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -14,6 +14,7 @@ import type { Locker } from "@/types/locker";
 
 export default function Home() {
   const router = useRouter();
+  const bookingSectionRef = useRef<HTMLDivElement>(null);
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [selectedLocker, setSelectedLocker] = useState<string | null>(null);
@@ -50,6 +51,14 @@ export default function Home() {
   const handleLockerSelect = (lockerId: string) => {
     setSelectedLocker(lockerId);
     setShowModal(true);
+    
+    // Scroll to booking section smoothly
+    setTimeout(() => {
+      bookingSectionRef.current?.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'center' 
+      });
+    }, 100);
   };
 
   const handleQuickBook = () => {
@@ -78,24 +87,24 @@ export default function Home() {
   const availableCount = lockers.filter((l) => l.available).length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+    <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white pb-20 md:pb-0">
       {/* Hero Section - Simplified */}
-      <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-8 md:px-6 md:pt-12">
+      <main className="mx-auto w-full max-w-7xl px-4 pb-20 pt-6 md:px-6 md:pt-12">
         <section className="text-center">
           <div className="mx-auto max-w-3xl">
-            <h1 className="text-4xl font-bold leading-tight md:text-6xl lg:text-7xl">
+            <h1 className="text-3xl font-bold leading-tight md:text-6xl lg:text-7xl">
               <span className="bg-gradient-to-r from-emerald-400 to-emerald-200 bg-clip-text text-transparent">
                 เช่าตู้ล็อคเกอร์
               </span>
               <br />
               ง่ายๆ แค่ 3 ขั้นตอน
             </h1>
-            <p className="mt-6 text-xl text-slate-300 md:text-2xl">
+            <p className="mt-4 text-lg text-slate-300 md:text-2xl">
               เลือกตู้ → ชำระเงิน → รับ QR ส่งไรเดอร์
             </p>
             
             {/* Quick Stats */}
-            <div className="mt-8 flex items-center justify-center gap-6">
+            <div className="mt-6 md:mt-8 flex items-center justify-center gap-4 md:gap-6">
               <div className="text-center">
                 <div className="text-3xl font-bold text-emerald-400">{availableCount}</div>
                 <div className="text-sm text-slate-400">ตู้ว่าง</div>
@@ -174,13 +183,13 @@ export default function Home() {
         </section>
 
         {/* Locker Selection - Main Focus */}
-        <section className="mt-16">
+        <section className="mt-16 mb-24">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold">เลือกตู้ที่ต้องการ</h2>
-            <p className="mt-2 text-slate-400">คลิกที่ตู้เพื่อดูรายละเอียดและจอง</p>
+            <h2 className="text-2xl md:text-3xl font-bold">เลือกตู้ที่ต้องการ</h2>
+            <p className="mt-3 text-base md:text-lg text-slate-400">แตะที่ตู้เพื่อดูรายละเอียดและจอง</p>
           </div>
 
-          <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
             {lockers.map((locker) => {
               const isSelected = selectedLocker === locker.id;
               return (
@@ -235,6 +244,7 @@ export default function Home() {
         {/* Modal */}
         {showModal && selectedLockerData && (
           <div 
+            ref={bookingSectionRef}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/10 backdrop-blur-xs"
             onClick={() => setShowModal(false)}
           >

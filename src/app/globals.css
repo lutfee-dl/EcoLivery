@@ -54,6 +54,10 @@
   border-bottom: 1px solid #e2e8f0 !important;
 }
 
+[data-theme="light"] .bg-slate-950\/98 {
+  background-color: rgba(255, 255, 255, 0.98) !important;
+}
+
 [data-theme="light"] .bg-slate-900\/60 {
   background-color: rgba(248, 250, 252, 0.8) !important;
 }
@@ -114,15 +118,15 @@
 
 /* Text Colors */
 [data-theme="light"] .text-white {
-  color: #0f172a !important;
+  color: #1e293b !important;
 }
 
 [data-theme="light"] .text-white\/90 {
-  color: rgba(15, 23, 42, 0.95) !important;
+  color: rgba(30, 41, 59, 0.95) !important;
 }
 
 [data-theme="light"] .text-slate-300 {
-  color: #475569 !important;
+  color: #334155 !important;
 }
 
 [data-theme="light"] .text-slate-400 {
@@ -131,6 +135,123 @@
 
 [data-theme="light"] .text-slate-500 {
   color: #64748b !important;
+}
+
+[data-theme="light"] .text-slate-200 {
+  color: #475569 !important;
+}
+
+[data-theme="light"] .text-emerald-400 {
+  color: #059669 !important;
+}
+
+[data-theme="light"] .text-emerald-200 {
+  color: #10b981 !important;
+}
+
+[data-theme="light"] .text-rose-200 {
+  color: #f43f5e !important;
+}
+
+/* Button Colors */
+[data-theme="light"] .bg-emerald-500 {
+  background-color: #10b981 !important;
+}
+
+[data-theme="light"] .hover\:bg-emerald-400:hover {
+  background-color: #34d399 !important;
+}
+
+[data-theme="light"] .text-slate-900 {
+  color: #0f172a !important;
+}
+
+[data-theme="light"] .shadow-emerald-500\/30 {
+  --tw-shadow-color: rgb(16 185 129 / 0.3) !important;
+  --tw-shadow: var(--tw-shadow-colored) !important;
+}
+
+/* Additional Text Colors */
+[data-theme="light"] .text-slate-100 {
+  color: #1e293b !important;
+}
+
+[data-theme="light"] .text-slate-800\/50 {
+  color: rgba(203, 213, 225, 0.5) !important;
+}
+
+/* Background Overlays */
+[data-theme="light"] .bg-black\/10 {
+  background-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .backdrop-blur-xs {
+  backdrop-filter: blur(2px) !important;
+}
+
+/* Gradient Text */
+[data-theme="light"] .from-emerald-400 {
+  --tw-gradient-from: #10b981 !important;
+}
+
+[data-theme="light"] .to-emerald-200 {
+  --tw-gradient-to: #34d399 !important;
+}
+
+[data-theme="light"] .bg-gradient-to-r {
+  background-image: linear-gradient(to right, var(--tw-gradient-from), var(--tw-gradient-to)) !important;
+}
+
+/* Additional Border Colors */
+[data-theme="light"] .border-emerald-500\/50 {
+  border-color: rgba(16, 185, 129, 0.5) !important;
+}
+
+[data-theme="light"] .border-emerald-500\/30 {
+  border-color: rgba(16, 185, 129, 0.3) !important;
+}
+
+/* Ring Colors */
+[data-theme="light"] .ring-white\/10 {
+  --tw-ring-color: rgba(0, 0, 0, 0.1) !important;
+}
+
+[data-theme="light"] .ring-emerald-400 {
+  --tw-ring-color: #10b981 !important;
+}
+
+/* Additional Backgrounds */
+[data-theme="light"] .bg-slate-800\/50 {
+  background-color: rgba(248, 250, 252, 0.8) !important;
+}
+
+[data-theme="light"] .bg-emerald-500\/20 {
+  background-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+[data-theme="light"] .bg-emerald-500\/10 {
+  background-color: rgba(16, 185, 129, 0.1) !important;
+}
+
+[data-theme="light"] .bg-rose-500\/20 {
+  background-color: rgba(239, 68, 68, 0.2) !important;
+}
+
+[data-theme="light"] .bg-rose-500\/30 {
+  background-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="light"] .hover\:bg-rose-500\/30:hover {
+  background-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+[data-theme="light"] .bg-black\/60 {
+  background-color: rgba(0, 0, 0, 0.6) !important;
+}
+
+/* Divider */
+[data-theme="light"] .bg-slate-700 {
+  background-color: #cbd5e1 !important;
 }
 
 /* Locker Card Specific */

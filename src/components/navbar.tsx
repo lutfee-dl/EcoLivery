@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
@@ -8,6 +8,7 @@ import Cookies from "js-cookie";
 import { auth } from "@/lib/firebase";
 import { ROLE_COOKIE_NAME, type UserRole } from "@/lib/auth/roles";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { User, LogOut, ChevronDown, Home, Package, Truck, Settings } from "lucide-react";
 
 export default function Navbar() {
   const router = useRouter();
@@ -16,6 +17,20 @@ export default function Navbar() {
   const [user, setUser] = useState<any>(null);
   const [role, setRole] = useState<UserRole | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
@@ -59,21 +74,10 @@ export default function Navbar() {
 
         {/* Desktop Menu - Super Simple */}
         <div className="hidden items-center gap-3 md:flex">
-          <ThemeToggle />
           {isLoading ? (
             <div className="h-9 w-32 animate-pulse rounded-lg bg-slate-800"></div>
           ) : user ? (
             <>
-              <Link
-                href="/dashboard"
-                className={`rounded-lg px-5 py-2 text-sm font-semibold transition ${
-                  isActive("/dashboard")
-                    ? "bg-emerald-500 text-slate-900 shadow-lg shadow-emerald-500/30"
-                    : "bg-slate-800 text-white hover:bg-slate-700"
-                }`}
-              >
-                หน้าหลัก
-              </Link>
 
               {role === "user" && (
                 <Link
@@ -114,17 +118,49 @@ export default function Navbar() {
                 </Link>
               )}
 
-              <div className="flex items-center gap-3">
-                <div className="text-right">
-                  <p className="text-xs text-slate-400">เข้าสู่ระบบด้วย</p>
-                  <p className="text-sm font-medium text-white">{user?.email || user?.phoneNumber || "ผู้ใช้"}</p>
-                </div>
+              {/* User Dropdown */}
+              <div className="relative" ref={dropdownRef}>
                 <button
-                  onClick={handleSignOut}
-                  className="cursor-pointer rounded-full border border-rose-500 px-4 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-500/10"
+                  onClick={() => setShowDropdown(!showDropdown)}
+                  className="flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
                 >
-                  ออกจากระบบ
+                  <User className="h-4 w-4" />
+                  <span className="max-w-[120px] truncate">{user?.email || user?.phoneNumber || "ผู้ใช้"}</span>
+                  <ChevronDown className={`h-4 w-4 transition-transform ${showDropdown ? "rotate-180" : ""}`} />
                 </button>
+
+                {/* Dropdown Menu */}
+                {showDropdown && (
+                  <div className="absolute right-0 top-full mt-2 w-64 rounded-xl border border-slate-700 bg-slate-900 shadow-2xl">
+                    <div className="border-b border-slate-800 px-4 py-3">
+                      <p className="mt-1 truncate text-sm font-medium text-white">{user?.email || user?.phoneNumber || "ผู้ใช้"}</p>
+                    </div>
+                      <div className="p-2">
+                        <button
+                          onClick={() => {
+                            setShowDropdown(false);
+                            router.push('/dashboard');
+                          }}
+                          className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-emerald-400 transition hover:bg-emerald-500/10"
+                        >
+                          <Home className="h-4 w-4" />
+                          ประวัติของฉัน
+                        </button>
+                      </div>
+                    <div className="p-2">
+                      <button
+                        onClick={() => {
+                          handleSignOut();
+                          setShowDropdown(false);
+                        }}
+                        className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-rose-200 transition hover:bg-rose-500/10"
+                      >
+                        <LogOut className="h-4 w-4" />
+                        ออกจากระบบ
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </>
           ) : (
@@ -135,101 +171,28 @@ export default function Navbar() {
               เข้าสู่ระบบ
             </Link>
           )}
-        </div>
-
-        {/* Mobile Menu Button */}
-        <div className="flex items-center gap-2 md:hidden">
           <ThemeToggle />
-          <button
-            onClick={() => setShowMobileMenu(!showMobileMenu)}
-            className="rounded-lg bg-slate-800 p-2 text-white transition hover:bg-slate-700"
-          >
-            <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              {showMobileMenu ? (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              ) : (
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              )}
-            </svg>
-          </button>
         </div>
-      </div>
 
-      {/* Mobile Menu */}
-      {showMobileMenu && (
-        <div className="border-t border-slate-800 bg-slate-950/95 px-4 py-3 md:hidden">
+        {/* Mobile Menu - Simplified (Only Theme Toggle and Login/Email) */}
+        <div className="flex items-center gap-2 md:hidden">
           {isLoading ? (
-            <div className="h-12 w-full animate-pulse rounded-lg bg-slate-800"></div>
+            <div className="h-9 w-20 animate-pulse rounded-lg bg-slate-800"></div>
           ) : user ? (
-            <div className="space-y-2">
-              <div className="rounded-lg bg-slate-800/50 px-4 py-3 text-center">
-                <p className="text-xs text-slate-400">เข้าสู่ระบบด้วย</p>
-                <p className="text-sm font-medium text-white">{user?.email || user?.phoneNumber || "ผู้ใช้"}</p>
-              </div>
-              
-              <Link
-                href="/dashboard"
-                onClick={() => setShowMobileMenu(false)}
-                className={`block rounded-lg px-4 py-3 text-center font-semibold transition ${
-                  isActive("/dashboard")
-                    ? "bg-emerald-500 text-slate-900"
-                    : "bg-slate-800 text-white"
-                }`}
-              >
-                หน้าหลัก
-              </Link>
-
-              {role === "user" && (
-                <Link
-                  href="/request"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block rounded-lg bg-slate-800 px-4 py-3 text-center font-semibold text-white"
-                >
-                  จองตู้
-                </Link>
-              )}
-
-              {role === "rider" && (
-                <Link
-                  href="/dropoff"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block rounded-lg bg-slate-800 px-4 py-3 text-center font-semibold text-white"
-                >
-                  ส่งของ
-                </Link>
-              )}
-
-              {role === "admin" && (
-                <Link
-                  href="/manage"
-                  onClick={() => setShowMobileMenu(false)}
-                  className="block rounded-lg bg-slate-800 px-4 py-3 text-center font-semibold text-white"
-                >
-                  จัดการ
-                </Link>
-              )}
-
-              <button
-                onClick={() => {
-                  handleSignOut();
-                  setShowMobileMenu(false);
-                }}
-                className="w-full rounded-lg px-4 py-3 text-center font-semibold text-slate-400"
-              >
-                ออก
-              </button>
+            <div className="max-w-[150px] truncate text-sm text-white">
+              {user?.email || user?.phoneNumber || "ผู้ใช้"}
             </div>
           ) : (
             <Link
               href="/auth/login"
-              onClick={() => setShowMobileMenu(false)}
-              className="block rounded-lg bg-emerald-500 px-4 py-3 text-center font-bold text-slate-900"
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-900 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400"
             >
               เข้าสู่ระบบ
             </Link>
           )}
+          <ThemeToggle />
         </div>
-      )}
+      </div>
     </nav>
   );
 }

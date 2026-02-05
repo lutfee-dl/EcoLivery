@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
+import BottomNavBar from "@/components/bottom-nav-bar";
 import { ThemeProvider } from "@/components/theme-provider";
 
 import { Anuphan } from "next/font/google";
@@ -76,6 +77,7 @@ export default function RootLayout({
             <Navbar />
             {children}
             <Footer />
+            <BottomNavBar />
           </ThemeProvider>
         </div>
       </body>

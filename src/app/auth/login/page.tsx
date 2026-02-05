@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   GoogleAuthProvider,
   RecaptchaVerifier,
@@ -35,8 +35,11 @@ interface RiderDoc extends RiderProfileForm {
   createdAt: any;
 }
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo") || "/";
+  const lockerId = searchParams.get("lockerId");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -70,16 +73,18 @@ export default function LoginPage() {
     try {
       const result = await signInWithPopup(auth, googleProvider);
       await setRoleCookieFromUser(result.user, "user");
-      
-      // Log activity
       await ActivityLogger.login(result.user.email || "unknown", "google");
+      setSuccess("เข้าสู่ระบบสำเร็จ!");
       
-      setSuccess("เข้าสู่ระบบสำเร็จ");
-      router.push("/dashboard");
+      // Redirect to returnTo or lockerId page if available
+      if (lockerId) {
+        router.push(`/request?lockerId=${lockerId}`);
+      } else {
+        router.push(returnTo);
+      }
     } catch (err: any) {
       await ActivityLogger.loginFailed("google-user", err?.message || "Unknown error");
       setError(err?.message || "ไม่สามารถเข้าสู่ระบบได้");
-    } finally {
       setLoading(false);
     }
   };
@@ -179,8 +184,17 @@ export default function LoginPage() {
 
       if (data.status === "approved") {
         await setRoleCookieFromUser(credential.user, "rider");
-        setSuccess("เข้าสู่ระบบไรเดอร์สำเร็จ");
-        router.push("/dashboard");
+        
+        await ActivityLogger.login(phone, "phone-rider");
+        
+        setSuccess("เข้าสู่ระบบสำเร็จ");
+        
+        // Redirect to returnTo or default
+        if (lockerId) {
+          router.push(`/request?lockerId=${lockerId}`);
+        } else {
+          router.push(returnTo);
+        }
       } else if (data.status === "rejected") {
         await setRoleCookieFromUser(credential.user, "user");
         setSuccess("บัญชีถูกปฏิเสธ กรุณาติดต่อแอดมิน");
@@ -258,8 +272,17 @@ export default function LoginPage() {
     try {
       const result = await signInWithEmailAndPassword(auth, adminEmail, adminPassword);
       await setRoleCookieFromUser(result.user, "admin");
-      setSuccess("เข้าสู่ระบบแอดมินสำเร็จ");
-      router.push("/dashboard");
+      
+      await ActivityLogger.login(adminEmail, "email-admin");
+      
+      setSuccess("เข้าสู่ระบบสำเร็จ");
+      
+      // Redirect to returnTo or default
+      if (lockerId) {
+        router.push(`/request?lockerId=${lockerId}`);
+      } else {
+        router.push(returnTo);
+      }
     } catch (err: any) {
       setError(err?.message || "อีเมลหรือรหัสผ่านไม่ถูกต้อง");
     } finally {
@@ -564,5 +587,17 @@ export default function LoginPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
+        <div className="text-white">Loading...</div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

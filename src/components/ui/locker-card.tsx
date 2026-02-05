@@ -23,14 +23,14 @@ export default function LockerCard({ locker, isSelected = false, onSelect }: Loc
     <button
       disabled={!isAvailable}
       onClick={handleClick}
-      className={`cursor-pointer group relative text-left transition-all ${
-        isSelected ? "scale-105" : isAvailable ? "hover:scale-105" : "cursor-not-allowed opacity-60"
+      className={`cursor-pointer group relative text-left transition-all duration-300 w-full ${
+        isSelected ? "scale-105 ring-4 ring-emerald-400/50" : isAvailable ? "hover:scale-105 active:scale-98" : "cursor-not-allowed opacity-60"
       }`}
       style={{ perspective: "1000px" }}
     >
       {/* 3D Locker Container */}
       <div
-        className={`relative ${LOCKER_SIZE_HEIGHTS[locker.size]} rounded-2xl transition-all duration-300`}
+        className={`relative ${LOCKER_SIZE_HEIGHTS[locker.size]} rounded-3xl transition-all duration-300`}
         style={{
           transformStyle: "preserve-3d",
           transform: isSelected ? "rotateY(-5deg)" : "rotateY(0deg)",
@@ -38,24 +38,24 @@ export default function LockerCard({ locker, isSelected = false, onSelect }: Loc
       >
         {/* Main Locker Body */}
         <div
-          className={`absolute inset-0 rounded-2xl border-2 transition-all ${
+          className={`absolute inset-0 rounded-3xl border-2 transition-all ${
             isSelected
-              ? "border-emerald-400 bg-gradient-to-br from-emerald-500/20 via-slate-800 to-slate-900 shadow-2xl shadow-emerald-500/30"
+              ? "border-emerald-400 bg-gradient-to-br from-emerald-500/20 via-slate-800 to-slate-900 shadow-2xl shadow-emerald-500/40"
               : isAvailable
               ? "border-slate-700 bg-gradient-to-br from-slate-800 via-slate-850 to-slate-900 shadow-lg group-hover:border-emerald-500/50"
               : "border-slate-800 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950"
           }`}
         >
           {/* Door Panel */}
-          <div className="relative h-full w-full overflow-hidden rounded-2xl p-4">
+          <div className="relative h-full w-full overflow-hidden rounded-3xl p-4">
             {/* Top Section - Locker ID */}
             <div className="mb-3 flex items-start justify-between">
               <div>
                 <div className="text-xs font-bold uppercase tracking-wider text-slate-500">Locker</div>
-                <div className="text-3xl font-black text-white">{locker.id}</div>
+                <div className="text-2xl md:text-3xl font-black text-white">{locker.id}</div>
               </div>
               {isSelected && (
-                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 shadow-lg">
+                <div className="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-500 shadow-lg animate-pulse">
                   <svg className="h-4 w-4 text-slate-900" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                   </svg>
@@ -99,11 +99,11 @@ export default function LockerCard({ locker, isSelected = false, onSelect }: Loc
                   <span
                     className={`rounded-full px-2.5 py-1 text-xs font-bold ${
                       isAvailable
-                        ? "bg-emerald-500/30 text-emerald-200 shadow-lg shadow-emerald-500/20"
-                        : "bg-rose-500/30 text-rose-200"
+                        ? "bg-emerald-500/20 text-emerald-400"
+                        : "bg-slate-800 text-slate-500"
                     }`}
                   >
-                    {isAvailable ? "AVAILABLE" : "OCCUPIED"}
+                    {isAvailable ? "ว่าง" : "ไม่ว่าง"}
                   </span>
                 </div>
               </div>
