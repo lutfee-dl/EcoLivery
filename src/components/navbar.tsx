@@ -114,28 +114,18 @@ export default function Navbar() {
                 </Link>
               )}
 
-              <button
-                onClick={handleSignOut}
-                className="cursor-pointer rounded-full border border-rose-500 px-4 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-500"
-              >
-                ออกจากระบบ
-              </button>
-            {/* <div className="flex items-center gap-3">
-            <div className="text-right">
-              <p className="text-xs text-slate-400">เข้าสู่ระบบด้วย</p>
-              <p className="text-sm font-medium">{user?.email || user?.phoneNumber || "ผู้ใช้"}</p>
-            </div>
-            <button
-              onClick={() => {
-                auth.signOut();
-                Cookies.remove(ROLE_COOKIE_NAME);
-                router.push("/");
-              }}
-              className="rounded-full border border-rose-500 px-4 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-500/10"
-            >
-              ออกจากระบบ
-            </button>
-          </div> */}
+              <div className="flex items-center gap-3">
+                <div className="text-right">
+                  <p className="text-xs text-slate-400">เข้าสู่ระบบด้วย</p>
+                  <p className="text-sm font-medium text-white">{user?.email || user?.phoneNumber || "ผู้ใช้"}</p>
+                </div>
+                <button
+                  onClick={handleSignOut}
+                  className="cursor-pointer rounded-full border border-rose-500 px-4 py-2 text-xs font-semibold text-rose-200 transition hover:bg-rose-500/10"
+                >
+                  ออกจากระบบ
+                </button>
+              </div>
             </>
           ) : (
             <Link
@@ -172,6 +162,11 @@ export default function Navbar() {
             <div className="h-12 w-full animate-pulse rounded-lg bg-slate-800"></div>
           ) : user ? (
             <div className="space-y-2">
+              <div className="rounded-lg bg-slate-800/50 px-4 py-3 text-center">
+                <p className="text-xs text-slate-400">เข้าสู่ระบบด้วย</p>
+                <p className="text-sm font-medium text-white">{user?.email || user?.phoneNumber || "ผู้ใช้"}</p>
+              </div>
+              
               <Link
                 href="/dashboard"
                 onClick={() => setShowMobileMenu(false)}
