@@ -7,7 +7,7 @@ import { onAuthStateChanged } from "firebase/auth";
 import Cookies from "js-cookie";
 import { auth } from "@/lib/firebase";
 import { ROLE_COOKIE_NAME, type UserRole } from "@/lib/auth/roles";
-import { User, LogOut, Home, Package, Truck, Settings } from "lucide-react";
+import { User, LogOut, Home, Package, Truck, Settings, Clock } from "lucide-react";
 
 export default function BottomNavBar() {
   const pathname = usePathname();
@@ -82,8 +82,21 @@ export default function BottomNavBar() {
                 className="flex w-full items-center gap-3 rounded-xl bg-emerald-500/20 px-5 py-4 text-base font-semibold text-emerald-200 transition hover:bg-emerald-500/30 active:scale-98"
               >
                 <User className="h-6 w-6" />
-                ดูโปรไฟล์และประวัติ
+                ดูโปรไฟล์
               </button>
+
+              {role === "user" && (
+                <button
+                  onClick={() => {
+                    router.push("/history");
+                    setShowAccountMenu(false);
+                  }}
+                  className="flex w-full items-center gap-3 rounded-xl bg-blue-500/20 px-5 py-4 text-base font-semibold text-blue-200 transition hover:bg-blue-500/30 active:scale-98"
+                >
+                  <Clock className="h-6 w-6" />
+                  ประวัติการฝากของ
+                </button>
+              )}
               
               <button
                 onClick={() => {

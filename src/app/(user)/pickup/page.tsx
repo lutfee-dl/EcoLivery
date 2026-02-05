@@ -17,6 +17,7 @@ function PickupContent() {
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [loading, setLoading] = useState(false);
   const [requests, setRequests] = useState<any[]>([]);
+  const [completedRequests, setCompletedRequests] = useState<any[]>([]);
   const [selectedRequestId, setSelectedRequestId] = useState(preSelectedRequestId || "");
   const [request, setRequest] = useState<any>(null);
   const [otp, setOtp] = useState("");
@@ -45,6 +46,8 @@ function PickupContent() {
   const loadUserRequests = async (uid: string) => {
     try {
       const { collection, query, where, getDocs } = await import("firebase/firestore");
+      
+      // โหลดรายการที่พร้อมรับ
       const q = query(collection(db, "requests"), where("customerId", "==", uid), where("status", "==", "in_locker"));
       const snapshot = await getDocs(q);
       const data = snapshot.docs.map((doc) => ({
@@ -52,6 +55,19 @@ function PickupContent() {
         ...doc.data(),
       }));
       setRequests(data);
+
+      // โหลดประวัติที่รับไปแล้ว (3 รายการล่าสุด)
+      const completedQuery = query(
+        collection(db, "requests"), 
+        where("customerId", "==", uid), 
+        where("status", "==", "completed")
+      );
+      const completedSnapshot = await getDocs(completedQuery);
+      const completedData = completedSnapshot.docs
+        .map((doc) => ({ id: doc.id, ...doc.data() }))
+        .sort((a: any, b: any) => b.completedAt?.seconds - a.completedAt?.seconds)
+        .slice(0, 3);
+      setCompletedRequests(completedData);
     } catch (err) {
       console.error("Error loading requests:", err);
     }
@@ -152,14 +168,74 @@ function PickupContent() {
 
   if (!preSelectedRequestId && requests.length === 0) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
-        <div className="text-center">
-          <AlertCircle className="mx-auto h-16 w-16 text-amber-400" />
-          <p className="mt-4 text-lg">ไม่มีรายการที่พร้อมรับของ</p>
-          <p className="mt-2 text-sm text-slate-400">รอไรเดอร์ส่งของเข้าตู้ก่อน</p>
-          <Link href="/dashboard" className="mt-4 inline-block rounded-xl bg-emerald-500 px-6 py-3 font-semibold text-slate-900 transition hover:bg-emerald-400">
-            กลับหน้าหลัก
-          </Link>
+      <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-white">
+        <header className="border-b border-slate-800/60 bg-slate-950/70 backdrop-blur">
+          <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-6 py-4">
+            <div>
+              <p className="text-xs uppercase tracking-[0.3em] text-emerald-300">รับของ</p>
+              <h1 className="text-xl font-bold">ปลดล็อคตู้</h1>
+            </div>
+            <Link
+              href="/dashboard"
+              className="rounded-xl border border-slate-700 px-4 py-2 text-sm font-semibold transition hover:border-slate-400"
+            >
+              ← กลับ
+            </Link>
+          </div>
+        </header>
+
+        <div className="mx-auto max-w-2xl px-6 py-12">
+          <div className="text-center mb-8">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-800/60">
+              <Package className="h-10 w-10 text-slate-500" />
+            </div>
+            <h2 className="mt-4 text-2xl font-bold">ไม่มีรายการที่พร้อมรับ</h2>
+            <p className="mt-2 text-slate-400">รอไรเดอร์ส่งของเข้าตู้</p>
+            <Link 
+              href="/dashboard" 
+              className="mt-6 inline-block rounded-xl bg-emerald-500 px-6 py-3 font-semibold text-slate-900 transition hover:bg-emerald-400"
+            >
+              กลับหน้าหลัก
+            </Link>
+          </div>
+
+          {/* ประวัติการรับของ */}
+          {completedRequests.length > 0 && (
+            <div className="mt-12">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">ประวัติที่รับไปแล้ว</h3>
+                <Link href="/history" className="text-sm text-emerald-400 hover:text-emerald-300">
+                  ดูทั้งหมด →
+                </Link>
+              </div>
+              <div className="space-y-3">
+                {completedRequests.map((req) => (
+                  <div
+                    key={req.id}
+                    className="rounded-xl border border-slate-800 bg-slate-900/60 p-4"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <CheckCircle className="h-5 w-5 text-green-400" />
+                        <div>
+                          <p className="font-semibold">ตู้ {req.lockerId}</p>
+                          <p className="text-xs text-slate-500">
+                            {req.completedAt && new Date(req.completedAt.seconds * 1000).toLocaleString('th-TH', {
+                              day: '2-digit',
+                              month: 'short',
+                              hour: '2-digit',
+                              minute: '2-digit'
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <p className="text-lg font-bold text-emerald-400">฿{req.price}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
     );
