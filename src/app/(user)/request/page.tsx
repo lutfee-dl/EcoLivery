@@ -16,7 +16,7 @@ import {
 } from "@/constants/rental-pricing";
 import { ActivityLogger } from "@/lib/activity-logger";
 import { Clock, Calendar } from "lucide-react";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Package } from "lucide-react";
 
 function RequestContent() {
   const router = useRouter();
@@ -335,9 +335,9 @@ function RequestContent() {
                   </div>
                 ) : (
                   <div className="mt-6 text-center">
-                    <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-slate-800/60 text-4xl">
-                      👆
-                    </div>
+                  <div className=" mx-auto flex h-20 w-20 items-center justify-center rounded-full flex items-center justify-center rounded-xl bg-emerald-500/20 dark:bg-emerald-500/10 mb-3">
+                    <Package className="h-10 w-10 text-emerald-600 dark:text-emerald-400" />
+                  </div>
                     <p className="mt-4 text-sm text-slate-400">เลือกตู้ด้านซ้ายเพื่อเริ่มจอง</p>
                   </div>
                 )}
