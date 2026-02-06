@@ -271,7 +271,7 @@ function PickupContent() {
                     setSelectedRequestId(req.id);
                     await loadRequest(req.id);
                   }}
-                  className="w-full rounded-2xl border border-slate-700 bg-slate-900/50 p-6 text-left transition hover:border-emerald-500"
+                  className="w-full rounded-2xl border border-slate-700 bg-slate-900 p-6 text-left transition hover:border-emerald-500"
                 >
                   <div className="flex items-center justify-between">
                     <div>
@@ -298,9 +298,9 @@ function PickupContent() {
               <p className="mt-2 text-slate-400">กรอกรหัส OTP เพื่อปลดล็อคตู้</p>
             </div>
 
-            <div className="rounded-3xl border border-slate-700 bg-slate-900/50 p-8 backdrop-blur">
+            <div className="rounded-3xl border border-slate-700 bg-slate-900 p-8 backdrop-blur">
               {/* Request Info */}
-              <div className="mb-6 space-y-3 rounded-2xl bg-slate-800/50 p-6">
+              <div className="mb-6 space-y-3 rounded-2xl bg-slate-900 p-6">
                 <div className="flex justify-between">
                   <span className="text-slate-400">ตู้:</span>
                   <span className="font-semibold">{request.lockerId}</span>

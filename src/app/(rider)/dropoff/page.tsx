@@ -190,7 +190,7 @@ export default function RiderDropoffPage() {
           />
         )}
 
-        <section className="rounded-3xl border-2 border-slate-800 bg-slate-900/80 p-8 shadow-xl">
+        <section className="rounded-3xl border-2 border-slate-800 bg-slate-900 p-8 shadow-xl">
           <div className="text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-500/10">
               <QrCode className="h-8 w-8 text-blue-400" />
@@ -251,24 +251,24 @@ export default function RiderDropoffPage() {
         </section>
 
         {requestId && lockerId && (
-          <section className="mt-6 rounded-3xl border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-slate-900/80 p-8 shadow-xl">
+          <section className="mt-6 rounded-3xl border-2 border-emerald-500/30 bg-gradient-to-br from-emerald-500/10 to-slate-900 p-8 shadow-xl">
             <div className="flex items-center gap-3">
               <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/20">
                 <Package className="h-6 w-6 text-emerald-400" />
               </div>
               <div>
                 <h3 className="text-xl font-bold">ตู้ {lockerId}</h3>
-                <p className="text-sm text-slate-400">Request: {requestId.slice(0, 12)}...</p>
+                <p className="text-sm text-slate-900">Request: {requestId.slice(0, 12)}...</p>
               </div>
             </div>
             
-            <div className="mt-4 rounded-xl bg-slate-900/50 p-4">
+            <div className="mt-4 rounded-xl bg-slate-900 p-4">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-slate-400">สถานะ</span>
                 <span className={`rounded-full px-3 py-1 text-xs font-bold ${
                   status === "paid" ? "bg-blue-500/20 text-blue-300" : 
                   status === "in_locker" ? "bg-emerald-500/20 text-emerald-300" : 
-                  "bg-slate-500/20 text-slate-300"
+                  "bg-slate-500 text-slate-300"
                 }`}>
                   {status === "paid" ? "ชำระแล้ว" : 
                    status === "in_locker" ? "อยู่ในตู้" : status}
@@ -279,7 +279,7 @@ export default function RiderDropoffPage() {
             <div className="mt-6 space-y-4">
               {/* Photo Upload */}
               <div>
-                <label className="block text-sm font-semibold text-slate-300 mb-2">
+                <label className="block text-sm font-semibold text-slate-500 mb-2">
                   ถ่ายรูปพัสดุ (ชื่อไฟล์)
                 </label>
                 <div className="relative">

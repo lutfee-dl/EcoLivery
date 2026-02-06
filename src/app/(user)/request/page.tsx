@@ -25,7 +25,7 @@ function RequestContent() {
   
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [lockerId, setLockerId] = useState(preSelectedLocker || "");
-  const [rentalDuration, setRentalDuration] = useState<RentalDuration>("12h");
+  const [rentalDuration, setRentalDuration] = useState<RentalDuration>("1h");
   const [loading, setLoading] = useState(false);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [riderToken, setRiderToken] = useState<string | null>(null);

@@ -394,19 +394,19 @@ function LoginContent() {
                   type="tel"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="0812345678 (กรอกอะไรก็ได้)"
+                  placeholder="Phone number e.g. +66812345678"
                   className="mt-2 w-full rounded-2xl border border-border bg-muted/60 px-4 py-3 placeholder:text-muted-foreground focus:border-blue-400 focus:outline-none"
                 />
-                <p className="mt-1 text-xs text-muted-foreground">
+                {/* <p className="mt-1 text-xs text-muted-foreground">
                   💡 Development Mode: ไม่ต้องใส่รูปแบบ +66
-                </p>
+                </p> */}
               </div>
 
               {!showRiderProfileForm && riderStatus === "none" && (
                 <button
                   onClick={handleVerifyOtp}
                   disabled={loading || !phone}
-                  className="w-full rounded-2xl bg-blue-500 px-6 py-4 font-bold text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="cursor-pointer w-full rounded-2xl bg-blue-500 px-6 py-4 font-bold text-white transition hover:bg-blue-400 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? "กำลังเข้าสู่ระบบ..." : "เข้าสู่ระบบ / สมัครใหม่"}
                 </button>

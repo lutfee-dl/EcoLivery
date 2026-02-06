@@ -116,7 +116,7 @@ export default function Home() {
               </div>
               <div className="h-12 w-px bg-slate-700"></div>
               <div className="text-center">
-                <div className="text-3xl font-bold text-emerald-400">฿30</div>
+                <div className="text-3xl font-bold text-emerald-400">฿19</div>
                 <div className="text-sm text-slate-400">เริ่มต้น</div>
               </div>
             </div>
