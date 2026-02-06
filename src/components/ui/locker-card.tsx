@@ -24,7 +24,7 @@ export default function LockerCard({ locker, isSelected = false, onSelect }: Loc
       disabled={!isAvailable}
       onClick={handleClick}
       className={`cursor-pointer group relative text-left transition-all duration-300 w-full ${
-        isSelected ? "scale-105 ring-4 ring-emerald-400/50" : isAvailable ? "hover:scale-105 active:scale-98" : "cursor-not-allowed opacity-60"
+        isSelected ? "scale-105" : isAvailable ? "hover:scale-105 active:scale-98" : "cursor-not-allowed opacity-60"
       }`}
       style={{ perspective: "1000px" }}
     >
