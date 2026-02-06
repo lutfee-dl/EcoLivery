@@ -178,7 +178,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/auth/login"
-              className="rounded-lg bg-emerald-500 px-6 py-2 text-sm font-bold text-slate-900 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400"
+              className="rounded-lg bg-emerald-500 px-6 py-2 text-sm font-bold text-white shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400"
             >
               เข้าสู่ระบบ
             </Link>
@@ -197,7 +197,7 @@ export default function Navbar() {
           ) : (
             <Link
               href="/auth/login"
-              className="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-slate-900 shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400"
+              className="rounded-lg bg-emerald-500 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-emerald-500/30 transition hover:bg-emerald-400"
             >
               เข้าสู่ระบบ
             </Link>

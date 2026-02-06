@@ -1,35 +1,35 @@
 // Rental Duration Pricing Structure
 
-export type RentalDuration = "3h" | "6h" | "12h" | "1d" | "3d" | "7d";
+export type RentalDuration = "1h" | "2h" | "3h" | "1d" | "3d" | "7d";
 
 export interface RentalPlan {
   id: RentalDuration;
   label: string;
   hours: number;
   basePrice: number;
-  overtimeRate: number; // ค่าปรับต่อชั่วโมง
+  overtimeRate: number;
 }
 
 export const RENTAL_PLANS: Record<RentalDuration, RentalPlan> = {
+  "1h": {
+    id: "1h",
+    label: "1 ชั่วโมง",
+    hours: 1,
+    basePrice: 19,
+    overtimeRate: 15,
+  },
+  "2h": {
+    id: "2h",
+    label: "2 ชั่วโมง",
+    hours: 2,
+    basePrice: 35,
+    overtimeRate: 12,
+  },
   "3h": {
     id: "3h",
     label: "3 ชั่วโมง",
     hours: 3,
-    basePrice: 30,
-    overtimeRate: 15,
-  },
-  "6h": {
-    id: "6h",
-    label: "6 ชั่วโมง",
-    hours: 6,
-    basePrice: 50,
-    overtimeRate: 12,
-  },
-  "12h": {
-    id: "12h",
-    label: "12 ชั่วโมง",
-    hours: 12,
-    basePrice: 80,
+    basePrice: 60,
     overtimeRate: 10,
   },
   "1d": {
@@ -55,7 +55,7 @@ export const RENTAL_PLANS: Record<RentalDuration, RentalPlan> = {
   },
 };
 
-export const RENTAL_DURATIONS: RentalDuration[] = ["3h", "6h", "12h", "1d", "3d", "7d"];
+export const RENTAL_DURATIONS: RentalDuration[] = ["1h", "2h", "3h", "1d", "3d", "7d"];
 
 export function calculateDeadline(startTime: Date, duration: RentalDuration): Date {
   const plan = RENTAL_PLANS[duration];
