@@ -8,7 +8,7 @@ import Cookies from "js-cookie";
 import { auth } from "@/lib/firebase";
 import { ROLE_COOKIE_NAME, type UserRole } from "@/lib/auth/roles";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { User, LogOut, ChevronDown, Home, Package, Truck, Settings } from "lucide-react";
+import { User, LogOut, ChevronDown, Home, Users } from "lucide-react";
 
 export default function Navbar() {
   const router = useRouter();
@@ -135,25 +135,37 @@ export default function Navbar() {
                     <div className="border-b border-slate-800 px-4 py-3">
                       <p className="mt-1 truncate text-sm font-medium text-white">{user?.email || user?.phoneNumber || "ผู้ใช้"}</p>
                     </div>
-                      <div className="p-2">
-                        <button
-                          onClick={() => {
-                            setShowDropdown(false);
-                            router.push('/dashboard');
-                          }}
-                          className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-emerald-400 transition hover:bg-emerald-500/10"
-                        >
-                          <Home className="h-4 w-4" />
-                          ประวัติของฉัน
-                        </button>
-                      </div>
+                    <div className="p-2">
+                      <button
+                        onClick={() => {
+                          setShowDropdown(false);
+                          router.push('/account');
+                        }}
+                        className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-emerald-400 transition hover:bg-emerald-500/10"
+                      >
+                        <Users className="h-4 w-4" />
+                        โปรไฟล์ของฉัน
+                      </button>
+                    </div>
+                    <div className="p-2">
+                      <button
+                        onClick={() => {
+                          setShowDropdown(false);
+                          router.push('/dashboard');
+                        }}
+                        className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-emerald-400 transition hover:bg-emerald-500/10"
+                      >
+                        <Home className="h-4 w-4" />
+                        ประวัติของฉัน
+                      </button>
+                    </div>
                     <div className="p-2">
                       <button
                         onClick={() => {
                           handleSignOut();
                           setShowDropdown(false);
                         }}
-                        className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-rose-200 transition hover:bg-rose-500/10"
+                        className="flex w-full items-center gap-3 rounded-lg px-4 py-2.5 text-sm font-medium text-rose-200 transition bg-rose-500/10 hover:bg-rose-600/20"
                       >
                         <LogOut className="h-4 w-4" />
                         ออกจากระบบ

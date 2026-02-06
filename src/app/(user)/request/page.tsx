@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, serverTimestamp, setDoc, updateDoc, collection, onSnapshot, query, orderBy, getDoc } from "firebase/firestore";
 import { auth, db } from "@/lib/firebase";
+import { generateToken } from "@/lib/utils";
 import LockerCard from "@/components/ui/locker-card";
 import { 
   RENTAL_PLANS, 
@@ -16,13 +17,6 @@ import {
 import { ActivityLogger } from "@/lib/activity-logger";
 import { Clock, Calendar } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
-
-function createToken() {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID().replace(/-/g, "");
-  }
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
-}
 
 function RequestContent() {
   const router = useRouter();
@@ -96,8 +90,8 @@ function RequestContent() {
         return;
       }
 
-      const id = createToken();
-      const token = createToken();
+      const id = generateToken();
+      const token = generateToken();
       const user = auth.currentUser;
       const now = new Date();
       const deadline = calculateDeadline(now, rentalDuration);
@@ -206,7 +200,7 @@ function RequestContent() {
                 <p className="mt-1 text-slate-400">คลิกเลือกตู้ที่ว่างเพื่อจอง</p>
               </div>
 
-              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 grid-cols-2 sm:grid-cols-2 lg:grid-cols-3">
                 {lockers.map((locker) => {
                   const isSelected = lockerId === locker.id;
                   return (

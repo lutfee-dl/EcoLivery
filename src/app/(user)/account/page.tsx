@@ -121,7 +121,7 @@ export default function AccountPage() {
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-white">บัญชีของฉัน</h1>
-          <p className="mt-2 text-slate-400">จัดการข้อมูลและดูประวัติการใช้งาน</p>
+          <p className="mt-2 text-slate-400">จัดการข้อมูลผู้ใช้งานของคุณ</p>
         </div>
 
         {/* Profile Card */}
@@ -149,68 +149,6 @@ export default function AccountPage() {
             </div>
           </div>
         </div>
-
-        {/* Recent Activity */}
-        <div className="mb-6 rounded-3xl border border-slate-800 bg-slate-900/60 p-6">
-          <div className="mb-4 flex items-center gap-2">
-            <Clock className="h-5 w-5 text-emerald-400" />
-            <h3 className="text-xl font-bold text-white">ประวัติการจองล่าสุด</h3>
-          </div>
-
-          {recentRequests.length === 0 ? (
-            <div className="rounded-2xl border border-slate-800 bg-slate-950/60 px-4 py-8 text-center">
-              <Package className="mx-auto h-12 w-12 text-slate-600" />
-              <p className="mt-3 text-slate-400">ยังไม่มีประวัติการจอง</p>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {recentRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="rounded-2xl border border-slate-800 bg-slate-950/60 p-4 transition hover:border-slate-700"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <Package className="h-4 w-4 text-slate-500" />
-                        <span className="font-semibold text-white">
-                          ตู้ {request.lockerId}
-                        </span>
-                      </div>
-                      <div className="mt-2 flex items-center gap-2 text-sm text-slate-400">
-                        <Calendar className="h-3 w-3" />
-                        <span>
-                          {request.createdAt?.toDate?.()?.toLocaleDateString("th-TH", {
-                            year: "numeric",
-                            month: "long",
-                            day: "numeric",
-                          }) || "ไม่ทราบวันที่"}
-                        </span>
-                      </div>
-                    </div>
-                    <div>
-                      <span
-                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${getStatusColor(
-                          request.status
-                        )}`}
-                      >
-                        {getStatusLabel(request.status)}
-                      </span>
-                    </div>
-                  </div>
-                  {request.price && (
-                    <div className="mt-3 text-right">
-                      <span className="text-lg font-bold text-emerald-400">
-                        ฿{request.price}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-
       </main>
     </div>
   );

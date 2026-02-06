@@ -16,8 +16,11 @@ export function formatPrice(price: number): string {
 }
 
 export function generateToken(): string {
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID().replace(/-/g, "");
+  // สร้าง Token 6 หลัก ที่จำง่าย (ตัวเลขและตัวอักษรพิมพ์ใหญ่)
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // ไม่มี I, O, 0, 1 เพื่อไม่ให้สับสน
+  let token = "";
+  for (let i = 0; i < 6; i++) {
+    token += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+  return token;
 }

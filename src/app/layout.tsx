@@ -73,7 +73,7 @@ export default function RootLayout({
       className={`${anuphan.variable} antialiased`}
       >
         <div className="min-h-screen">
-          <ThemeProvider attribute="data-theme" defaultTheme="dark" enableSystem>
+          <ThemeProvider attribute="data-theme" defaultTheme="system" enableSystem>
             <Navbar />
             {children}
             <Footer />
